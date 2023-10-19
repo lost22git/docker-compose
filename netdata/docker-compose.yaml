@@ -1,0 +1,38 @@
+version: '3'
+services:
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    pid: host
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    network_mode: host
+    volumes:
+      - ./config/netdata:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.netdata.rule=Host(`netdata.docker.lost`)"
+    #   - "traefik.http.routers.netdata.entrypoints=https"
+    #   - "traefik.http.routers.netdata.tls=true"
+    #   - "traefik.http.routers.netdata.middlewares=gzip@docker"
+    #   - "traefik.http.routers.netdata.service=netdata"
+    #   - "traefik.http.services.netdata.loadBalancer.servers[0].url=http://host.docker.internal:19999" # traefik 还未支持此项配置
+  
+
+volumes:
+  netdatalib:
+    name: netdatalib
+  netdatacache:
+    name: netdatacache

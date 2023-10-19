@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    networks:
+      - mnet
+    volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"
+        - "portainer_data:/data"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.docker.lost`)"
+      - 'traefik.http.routers.portainer.entrypoints=https'
+      - "traefik.http.routers.portainer.tls=true"
+      - "traefik.http.routers.portainer.middlewares=gzip@docker"
+      - "traefik.http.routers.portainer.service=portainer"
+      - "traefik.http.services.portainer.loadBalancer.server.port=9000"
+
+networks:
+  mnet:
+    name: mnet
+    external: true
+
+volumes:
+  portainer_data:
+    name: portainer_data

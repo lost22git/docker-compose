@@ -1,0 +1,96 @@
+
+version: "3"
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.path=/prometheus"
+    restart: unless-stopped
+    networks:
+      - mnet
+    volumes:
+      - "./config/prometheus/:/etc/prometheus/"
+      - "prometheus_data:/prometheus"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.docker.lost`)"
+      - "traefik.http.routers.prometheus.entrypoints=https"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.middlewares=gzip@docker"
+      - "traefik.http.routers.prometheus.service=prometheus"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    depends_on: 
+      - prometheus
+    environment:
+      - "GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false"
+      - "GF_INSTALL_PLUGINS=grafana-piechart-panel"
+    networks:
+      - mnet
+    volumes:
+      - "./config/grafana/provisioning/:/etc/grafana/provisioning/"
+      - "grafana_data:/var/lib/grafana"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.docker.lost`)"
+      - "traefik.http.routers.grafana.entrypoints=https"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.middlewares=gzip@docker"
+      - "traefik.http.routers.grafana.service=grafana"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+
+  cadvisor:
+    image: gcr.lank8s.cn/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - mnet
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - "--collector.tcpstat"
+      - "--collector.diskstats"
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+#      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.filesystem.ignored-mount-points"
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs/systemd)($$|/)"
+    networks:
+      - mnet
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+
+networks:
+  mnet:
+    name: mnet
+    external: true
+
+volumes:
+  prometheus_data:
+    name: prometheus_data
+  grafana_data:
+    name: grafana_data

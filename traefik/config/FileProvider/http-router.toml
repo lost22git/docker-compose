@@ -1,0 +1,10 @@
+# ------ netdata -----------------------
+
+[http.routers.netdata]
+rule = "Host(`netdata.docker.lost`)"
+entrypoints = "https"
+tls = true
+service = "netdata"
+middlewares = ["gzip@docker"]
+[http.services.netdata]
+loadBalancer.servers = [{ url = "http://host.docker.internal:19999" }]
