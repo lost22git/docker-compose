@@ -13,7 +13,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.portainer.rule=Host(`portainer.docker.lost`)"
-      - 'traefik.http.routers.portainer.entrypoints=https'
+      - 'traefik.http.routers.portainer.entrypoints=tls'
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.routers.portainer.middlewares=gzip@docker"
       - "traefik.http.routers.portainer.service=portainer"

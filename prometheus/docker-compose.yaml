@@ -6,18 +6,22 @@ services:
     image: prom/prometheus
     container_name: prometheus
     command:
+      - "--web.enable-lifecycle" # 支持 reload config by POST/PUT http://ip:port/-/reload
       - "--config.file=/etc/prometheus/prometheus.yaml"
       - "--storage.tsdb.path=/prometheus"
     restart: unless-stopped
     networks:
       - mnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "host.windows.internal:${windows_host}"
     volumes:
       - "./config/prometheus/:/etc/prometheus/"
       - "prometheus_data:/prometheus"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.docker.lost`)"
-      - "traefik.http.routers.prometheus.entrypoints=https"
+      - "traefik.http.routers.prometheus.entrypoints=tls"
       - "traefik.http.routers.prometheus.tls=true"
       - "traefik.http.routers.prometheus.middlewares=gzip@docker"
       - "traefik.http.routers.prometheus.service=prometheus"
@@ -40,7 +44,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`grafana.docker.lost`)"
-      - "traefik.http.routers.grafana.entrypoints=https"
+      - "traefik.http.routers.grafana.entrypoints=tls"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.middlewares=gzip@docker"
       - "traefik.http.routers.grafana.service=grafana"

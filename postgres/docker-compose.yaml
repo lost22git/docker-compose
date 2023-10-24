@@ -14,7 +14,7 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.tcp.routers.postgres.rule=HostSNI(`postgres.docker.lost`)'
-      - 'traefik.tcp.routers.postgres.entrypoints=https'
+      - 'traefik.tcp.routers.postgres.entrypoints=tls'
       - 'traefik.tcp.routers.postgres.tls=true'
       - "traefik.tcp.routers.postgres.tls.passthrough=false"
       - "traefik.tcp.routers.postgres.service=postgres"

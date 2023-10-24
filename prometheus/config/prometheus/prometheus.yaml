@@ -26,3 +26,10 @@ scrape_configs:
     static_configs:
       - targets: ['traefik:8080']
 
+  - job_name: test-quarkus
+    metrics_path: /about/metrics/prometheus
+    static_configs:
+      - targets: ['host.windows.internal:8000']
+      
+
+

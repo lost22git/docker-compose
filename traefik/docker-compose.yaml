@@ -16,10 +16,10 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       # entrypoints
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.http.http.redirections.entryPoint.to=https"
-      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.https.address=:443"
+      - "--entrypoints.raw.address=:80"
+      - "--entrypoints.raw.http.redirections.entryPoint.to=tls"
+      - "--entrypoints.raw.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.tls.address=:443"
       # mertrics
       - "--metrics.prometheus=true"
       - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
@@ -36,6 +36,7 @@ services:
       - "443:443"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "host.windows.internal:${windows_host}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config/FileProvider/:/FileProvider/:ro
@@ -47,13 +48,13 @@ services:
       - "traefik.http.middlewares.traefik-auth.basicauth.users=lost:$$apr1$$s0c3kzjm$$nLwpHc5gLp1Xix3KEsjfz0" # 使用 httpasswd 生成密码，注意将 $ 替换成 $$
       # traefik-dashboard
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.docker.lost`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=https"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=tls"
       - "traefik.http.routers.traefik-dashboard.tls=true"
       - "traefik.http.routers.traefik-dashboard.middlewares=gzip@docker,traefik-auth@docker"
       - "traefik.http.routers.traefik-dashboard.service=dashboard@internal"
       # traefik-api
       - "traefik.http.routers.traefik-api.rule=Host(`traefik.docker.lost`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.traefik-api.entrypoints=https"
+      - "traefik.http.routers.traefik-api.entrypoints=tls"
       - "traefik.http.routers.traefik-api.tls=true"
       - "traefik.http.routers.traefik-api.middlewares=gzip@docker,traefik-auth@docker"
       - "traefik.http.routers.traefik-api.service=api@internal"

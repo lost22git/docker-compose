@@ -2,7 +2,7 @@
 
 [http.routers.netdata]
 rule = "Host(`netdata.docker.lost`)"
-entrypoints = "https"
+entrypoints = "tls"
 tls = true
 service = "netdata"
 middlewares = ["gzip@docker"]
